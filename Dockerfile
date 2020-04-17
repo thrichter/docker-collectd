@@ -1,6 +1,5 @@
-FROM debian:jessie
-MAINTAINER Carles Amigó, fr3nd@fr3nd.net
-
+FROM debian
+MAINTAINER  Thorsten Richter
 
 RUN apt-get update && apt-get install -y \
       autoconf \
@@ -16,7 +15,7 @@ RUN apt-get update && apt-get install -y \
       libdbi0-dev \
       libesmtp-dev \
       libganglia1-dev \
-      libgcrypt11-dev \
+      libgcrypt20-dev \
       libglib2.0-dev \
       libhiredis-dev \
       libltdl-dev \
@@ -24,7 +23,7 @@ RUN apt-get update && apt-get install -y \
       libmemcached-dev \
       libmnl-dev \
       libmodbus-dev \
-      libmysqlclient-dev \
+      default-libmysqlclient-dev \
       libopenipmi-dev \
       liboping-dev \
       libow-dev \
@@ -46,25 +45,32 @@ RUN apt-get update && apt-get install -y \
       linux-libc-dev \
       pkg-config \
       protobuf-c-compiler \
+      python-pip \
+      libxml2-dev \
+      libxslt1-dev \
       python-dev && \
       rm -rf /usr/share/doc/* && \
       rm -rf /usr/share/info/* && \
       rm -rf /tmp/* && \
       rm -rf /var/tmp/*
 
-ENV COLLECTD_VERSION collectd-5.5.0
+RUN pip install fritzcollectd
+
+ENV COLLECTD_VERSION collectd-5.11.0
 
 WORKDIR /usr/src
 RUN git clone https://github.com/collectd/collectd.git
 WORKDIR /usr/src/collectd
 RUN git checkout $COLLECTD_VERSION
 RUN ./build.sh
+RUN ./configure --help
 RUN ./configure \
     --prefix=/usr \
     --sysconfdir=/etc/collectd \
     --without-libstatgrab \
     --without-included-ltdl \
-    --disable-static
+    --disable-static \
+    --disable-werror
 RUN make all
 RUN make install
 RUN make clean
